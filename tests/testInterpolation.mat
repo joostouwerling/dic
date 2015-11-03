@@ -1,0 +1,7 @@
+ rows = rowStart:config.precision:rowEnd;
+ cols = colStart:config.precision:colEnd;
+    fValues = zeros(size(rows, 2), size(cols,2));
+    cfRef = config.imReference.interpolation;
+    
+    for row = 1:size(rows,2)
+        for col = 1:size(cols,2)

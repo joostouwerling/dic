@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Digital Image Correlation for 3D SEM</title>
+    <meta charset="utf-8">
+    <link href='https://fonts.googleapis.com/css?family=Raleway:400,300,600,500' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+    <style>
+      @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
+      @import url(https://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic);
+      @import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
+
+      body { font-family: 'Droid Serif'; line-height: 200%; }
+      h1, h2, h3 {
+        font-family: 'Raleway';
+        font-weight: 500;
+      }
+      h1 {
+        font-size: 50px !important;
+      }
+      h2 {
+        font-size: 35px !important;
+      }
+      .footnoteFront {
+        position: absolute;
+        bottom: 1.5em;
+        left: 7.5em;
+      }
+      .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
+      .front {
+        background-image: url('./rug-fwn-ziam.png');
+        background-position: 30px 30px;
+      }
+      .packed {
+        line-height: 60%;
+      }
+      li {
+        padding: 8px 0;
+      }
+      /* Two-column layout */
+      .left-column {
+        color: #777;
+        width: 20%;
+        height: 92%;
+        float: left;
+      }
+        .left-column h2:last-of-type, .left-column h3:last-child {
+          color: #000;
+        }
+      .right-column {
+        width: 75%;
+        float: right;
+        padding-top: 1em;
+      }
+      .green {
+        color: rgb(19, 226, 19);
+        font-size: 175%;
+        padding-top: 50px;
+        display: block;
+        font-weight: 600;
+      }
+      .inverse {
+        background: #272822;
+        color: #fff;
+      }
+      .small {
+        font-size: 75%;
+      }
+      .math {
+        background-image: url('./giphy.gif');
+        background-size: cover;
+        color: #fff;
+      }
+      .math h1 {
+        font-weight: 700;
+        font-size: 200px !important;
+      }
+
+      .interpolation {
+        background-image: url('./interpolation.png');
+        background-size: cover !important;
+        background-position: 0 -120px !important;
+      }
+      .no-interpolation {
+        background-image: url('./no-interpolation.png');
+        background-size: cover;
+      }
+
+      .karate {
+        background-image: url('./karate.jpg');
+        background-size: cover;
+      }
+      .program1 {
+        background-image: url('./programoutline.png');
+        background-size: 80% 150% !important;
+        background-position: 80px 220px !important;
+      }
+      .program2 {
+        background-image: url('./programoutline.png');
+        background-size: 80% 150% !important;
+        background-position: 80px -355px !important;
+      }
+      .warpscheme {
+        background-image: url('./warpscheme.png');
+      }
+      .emptygrid {
+        background-image: url('./emptygrid.png');
+      }
+      .gridpoints {
+        background-image: url('./gridpoints.png');
+      }
+      .griddefs {
+        background-image: url('./griddefs.png');
+      }
+      .subsetdefs {
+        background-image: url('./subsetdefs.png');
+      }
+      .interpolation-scheme {
+        background-image: url('./interpolation-scheme.png');
+      }
+      .transformation {
+        background-image: url('./transformation.png');
+      }
+      .brightness {
+        background-image: url('./brightness.png');
+        background-position: 0 400px !important;
+      }
+      .larger {
+        font-size: 150%;
+        line-height: 200%;
+      }
+      .large {
+        font-size: 50px;
+      }
+    </style>
+  </head>
+  <body>
+    <textarea id="source">
+
+class: center, middle, front
+
+# DIC for 3D SEM
+### Theory and Implementation
+Joost Ouwerling
+
+.packed[University of Groningen
+
+Department of Applied Physics
+
+Materials Science Group]
+
+June 9, 2015
+
+.footnoteFront[**Supervisors**
+
+dr. ir. E.T. Faber, prof. dr. Jeff Th.M. de Hosson and dr. V. Ocelìk]
+---
+class: agenda
+# Agenda
+
+1. Project setup
+2. Intro to Digital Image Correlation
+  1. Correlation criteria
+  2. Three strategies for DIC
+  3. Interpolation
+6. Implementation
+7. How to continue from here
+
+---
+# Project setup
+* Two bachelorstudents, Enrico and me, looking for an Applied Physics bachelorproject with Computing Science elements in it.
+
+---
+# Project setup
+* Two bachelorstudents, Enrico and me, looking for an Applied Physics bachelorproject with Computing Science elements in it.
+* Naturally, the MK group had something interesting for us.
+
+---
+# Project setup
+* Two bachelorstudents, Enrico and me, looking for an Applied Physics bachelorproject with Computing Science elements in it.
+* Naturally, the MK group had something interesting for us.
+* Joost works in IIb, Enrico in Ia
+
+---
+# Project setup
+* Two bachelorstudents, Enrico and me, looking for an Applied Physics bachelorproject with Computing Science elements in it.
+* Naturally, the MK group had something interesting for us.
+* Joost works in IIb, Enrico in Ia
+
+## Target
+> *Replace the DIC black box currently used in Enne's 3D SEM program by a software implementation of which all ins and outs are known and understood, thereby making it an useful scientific tool.*
+
+---
+# Project setup
+## Target breakdown
+
+1. General DIC implementation
+2. Error quantification
+3. SEM specific considerations
+
+---
+# Project setup
+## Target breakdown
+
+1. General DIC implementation
+2. Error quantification
+3. SEM specific considerations
+
+## Requirements
+
+* Everything well documented for further improvement
+* Assess all assumptions made in the software
+* Verify algorithms with SEM images
+
+---
+#Project setup
+
+## Phases
+1. Literature study
+
+---
+#Project setup
+
+## Phases
+1. Literature study
+2. Implementation (+ documentation!)
+
+---
+#Project setup
+
+## Phases
+1. Literature study
+2. Implementation (+ documentation!)
+3. Verification
+
+---
+#Project setup
+
+## Phases
+**while** *not all requirements implemented* **do**
+
+1. Literature study
+2. Implementation (+ documentation!)
+3. Verification
+
+**end while;**
+
+---
+
+class: center, inverse
+
+# What did we accomplish?
+
+
+---
+
+class: center, inverse
+
+# What did we accomplish?
+
+.green[General DIC implementation
+
+<i class="fa fa-thumbs-up fa-3x"></i>]
+
+---
+
+class: center, inverse
+
+# What did we accomplish?
+
+.green[General DIC implementation
+
+<i class="fa fa-thumbs-up fa-3x"></i>]
+
+... well, almost!
+
+???
+* All gridpoints
+* Verification
+* Some small documentations
+
+---
+
+class: center, inverse
+
+# What did we accomplish?
+
+.green[General DIC implementation
+
+<i class="fa fa-thumbs-up fa-3x"></i>]
+
+... well, almost!
+
+In addition, we also put some thought into error quantification.
+
+---
+
+class: center, middle, inverse
+
+# On to the details
+
+---
+
+# Digital Image Correlation (DIC)
+
+* Basically, it is all about optimizing the **correlation coefficient** as a function of a displacement vector **p**
+
+---
+
+class: transformation
+
+---
+
+# Digital Image Correlation (DIC)
+
+* Basically, it is all about optimizing the **correlation coefficient** as a function of a displacement vector **p**
+* Different coefficients and different algorithms
+
+---
+
+# Digital Image Correlation (DIC)
+
+* Basically, it is all about optimizing the **correlation coefficient** as a function of a displacement vector **p**
+* Different coefficients and different algorithms
+* Before we go to the math, first some geometrical definitions...
+
+---
+
+class: emptygrid
+
+---
+
+class: gridpoints
+
+---
+
+class: griddefs
+
+---
+
+class: gridpoints
+
+---
+
+class: subsetdefs
+---
+
+class: center, middle, inverse
+
+# So, lets dive into the theory
+
+---
+
+class: center, middle, inverse
+
+# So, lets dive into the theory
+# Unfortunately, that involves...
+
+---
+
+class: math, center, middle
+
+# math
+
+---
+
+# Digital Image Correlation
+We are looking for a displacement **D** between the **reference** image *f(x,y)* and **target** image *g(x',y')* of the form
+
+.center[![D(x,y)](./displacement.png)]
+
+in which
+
+.center[![xyprime](./xyprime.png)]
+
+such that a certain **correlation criteria** C is optimal, i.e. a global minimum (or maximum).
+
+In literature, two criteria are used: ZNSSD and ZNCC. 
+
+---
+
+# Digital Image Correlation
+## Correlation criteria
+
+Let *f(x,y)* be *f<sub>ij</sub>* and *g(x',y')* be *g<sub>ij</sub>*, and let the summation be over the complete subset. Then SSD and CC are defined as:
+
+SSD - Sum of Squared Differences
+
+.center[![SSD](./ssd.png)]
+
+CC - Cross Correlation
+
+.center[![CC)](./CC.png)]
+
+---
+
+# Digital Image Correlation
+## Correlation criteria
+
+Let *f<sub>m</sub>* and *g<sub>m</sub>* be the mean value of the reference and target subset. Then
+
+.center[![ZSSD](./zssd.png)]
+
+takes brightness offset between the images into account.
+
+---
+
+class: brightness
+
+# Digital Image Correlation
+## Correlation criteria
+
+Let *f<sub>m</sub>* and *g<sub>m</sub>* be the mean value of the reference and target subset. Then
+
+.center[![ZSSD](./zssd.png)]
+
+takes brightness offset between the images into account.
+
+---
+
+# Digital Image Correlation
+## Correlation criteria
+
+Let *f<sub>m</sub>* and *g<sub>m</sub>* be the mean value of the reference and target subset. Then
+
+.center[![ZSSD](./zssd.png)]
+
+takes brightness offset between the images into account.
+
+Let *<span style="text-decoration: overline;">f</span><sub>ij</sub>* be *f<sub>ij</sub> - f<sub>m</sub>* and *<span style="text-decoration: overline;">g</span><sub>ij</sub>* be *g<sub>ij</sub> - g<sub>m</sub>*, then normalization results in
+
+.center[![ZNSSD](./znssd.png)]
+
+so that scale changes in the intensity is taken into account as well.
+
+---
+
+# Digital Image Correlation
+## Correlation criteria
+
+For ZNCC, we have
+
+.center[![ZNCC](./zncc.png)]
+
+---
+
+# Digital Image Correlation
+## Correlation criteria
+
+For ZNCC, we have
+
+.center[![ZNCC](./zncc.png)]
+
+So.. which one do we use? It can be proven algebraically that
+
+.center[![ZNCC vs ZNSSD](./comparison.png)]
+
+so there is no real advantage for one over the other. ZNSSD is easier to compute, so let's use that.
+
+---
+
+# Digital Image Correlation
+## The displacement vector
+Remember, for the displacement vector **D**, we had the transformation
+.center[![xyprime](./xyprime.png)]
+
+---
+
+# Digital Image Correlation
+## The displacement vector
+Remember, for the displacement vector **D**, we had the transformation
+.center[![xyprime](./xyprime.png)]
+Taking up to first order derivative into account, around subsetcenter *(x<sub>0</sub>, y<sub>0</sub>)*:
+.center[![xyprime ext](./xyprime-ext.png)]
+
+---
+
+# Digital Image Correlation
+## The displacement vector
+Remember, for the displacement vector **D**, we had the transformation
+.center[![xyprime](./xyprime.png)]
+Taking up to first order derivative into account, around subsetcenter *(x<sub>0</sub>, y<sub>0</sub>)*:
+.center[![xyprime ext](./xyprime-ext.png)]
+so that the six unknowns of the displacement can be grouped in a vector **p**
+.center[![p vector](./pvector.png)]
+
+---
+
+# Digital Image Correlation
+## The displacement vector
+This can be translated in the so-called **warp function**
+
+.center[![warp](./warp.png)]
+
+with *x* and *y* relative to the subset center.
+
+---
+
+# Digital Image Correlation
+## The displacement vector
+This can be translated in the so-called **warp function**
+
+.center[![warp](./warp.png)]
+
+with *x* and *y* relative to the subset center.
+
+.center[![znssd-warp](./znssd-warp.png)]
+
+---
+
+class: warpscheme
+
+???
+
+Back to previous slide for summary
+
+---
+
+# Digital Image Correlation
+## Three algorithms
+
+* Coarse-fine search
+* Forward Additive Newton Rhapson (FA-NR)
+* Inverse Compositional Gauss Newton (IC-GN)
+
+---
+# Digital Image Correlation
+## Coarse-fine search
+
+* Excellent results, but loooooooooong computation time
+
+---
+# Digital Image Correlation
+## Coarse-fine search
+
+* Excellent results, but loooooooooong computation time
+* With a little trick it can be improved
+
+---
+# Digital Image Correlation
+## Coarse-fine search
+
+* Excellent results, but loooooooooong computation time
+* With a little trick it can be improved
+* Too slow to be really useful 
+
+.center[<i class="fa fa-frown-o fa-4x"></i>]
+
+---
+# Digital Image Correlation
+## Coarse-fine search
+
+* Excellent results, but loooooooooong computation time
+* With a little trick it can be improved
+* Too slow to be really useful 
+
+.center[<i class="fa fa-frown-o fa-4x"></i>]
+
+Although, we actually use this in our program!
+
+---
+
+# Digital Image Correlation
+## Forward Additive Newton Rhapson (FA-NR)
+
+Under certain conditions, we can say that we want to achieve
+
+.center[![dcdp-zero](./dcdpzero.png)]
+
+---
+
+# Digital Image Correlation
+## Forward Additive Newton Rhapson (FA-NR)
+
+Under certain conditions, we can say that we want to achieve
+
+.center[![dcdp-zero](./dcdpzero.png)]
+
+[insert (numermical) math here]
+
+.center[![fanr-optimization](./fanr-optimization.png)]
+
+with the hessian **H** defined as
+
+.center[![fanr-hessian](./fanr-hessian.png)]
+
+---
+
+# Digital Image Correlation
+## Forward Additive Newton Rhapson (FA-NR)
+
+* Huge improvement over coarse fine search
+
+---
+
+# Digital Image Correlation
+## Forward Additive Newton Rhapson (FA-NR)
+
+* Huge improvement over coarse fine search
+* Some considerations
+  * Absolute vs local minimum
+  * First order approximation
+
+---
+
+# Digital Image Correlation
+## Forward Additive Newton Rhapson (FA-NR)
+
+* Huge improvement over coarse fine search
+* Some considerations
+  * Absolute vs local minimum
+  * First order approximation
+
+.center[We do not use this algorithm.]
+.center[.small[But it has historical value]]
+
+???
+
+* Absolute vs Local Minimum
+* Dropped higher order terms -> close initial guess
+
+---
+# Digital Image Correlation
+## Inverse Compositional Gauss Newton (IC-GN)
+
+Reverse the role of the reference and target image in the search for an optimum
+
+.center[![icgn-znssd](./icgn-znssd.png)]
+
+---
+
+# Digital Image Correlation
+## Inverse Compositional Gauss Newton (IC-GN)
+
+Reverse the role of the reference and target image in the search for an optimum
+
+.center[![icgn-znssd](./icgn-znssd.png)]
+
+Solving this, again for the minimum, is handled as a least square problem. The solution is
+
+.center[![icgn-dp](./icgn-dp.png)]
+
+---
+# Digital Image Correlation
+## Inverse Compositional Gauss Newton (IC-GN)
+
+But why is this better? It looks more complicated.
+
+???
+
+Equivalence
+
+---
+# Digital Image Correlation
+## Inverse Compositional Gauss Newton (IC-GN)
+
+But why is this better? It looks more complicated. 
+
+It lies in the definition of the Hessian
+
+.center[![icgn-hessian](./icgn-hessian.png)]
+
+in which
+
+.center[![icgn-nablafdwdp](./icgn-nablafdwdp.png)]
+
+i.e. no dependance on **p** and therefore constant for every subset!
+
+---
+class: inverse, center, middle
+# Almost done!
+???
+Short summary:
+* IC Gn for algo
+* COarse fine for initial guess
+
+---
+class: inverse, center, middle
+# Almost done!
+## Sub-pixel measurements
+
+---
+# Digital Image Correlation
+## Interpolation
+
+* We can approximate subpixel values using interpolation.
+
+---
+# Digital Image Correlation
+## Interpolation
+
+* We can approximate subpixel values using interpolation.
+* Bicubic interpolation - third order polynomial
+
+.center[![icgn-nablafdwdp](./interpolation-polynomial.png)]
+
+---
+# Digital Image Correlation
+## Interpolation
+
+* We can approximate subpixel values using interpolation.
+* Bicubic interpolation - third order polynomial
+
+.center[![icgn-nablafdwdp](./interpolation-polynomial.png)]
+
+* 16 unknowns -> 16 equations necessary
+* Values at pixels plus their approximated derivatives
+
+???
+
+Finite differences
+
+---
+class: interpolation-scheme
+
+---
+
+class: no-interpolation
+
+---
+
+class: interpolation
+
+---
+
+class: inverse
+
+# Summarizing
+* ZNSSD as correlation criterion
+* Coarse-fine search for initial guess
+* IC-GN for optimizing **p**
+* Bicubic interpolation for subpixel measurements
+
+---
+
+class: center, middle, inverse
+
+# Let's launch the demo
+
+---
+
+# Implementation
+
+* The programming language
+* Program outline
+
+---
+
+class: karate
+
+???
+
+10 times rule
+
+---
+
+class: program1
+
+#Program outline
+* Use a priority queue for accurate initial guesses
+
+---
+class: program2
+#Program outline
+
+---
+
+class: inverse, center, middle
+
+# Results of the demo
+
+---
+
+# How to continue from here
+
+For me
+* Last bits of code and documentation
+* Finish the report
+* Write up thoughts on several considerations
+
+For Enrico and Enne
+* Verification with SEM 
+* Complete error quantification
+* SEM specific considerations
+* Speed improvements / port to C or C++
+
+---
+
+class: inverse, middle, center
+
+# Thats it.
+# Thanks for your attention!
+## Any questions or remarks?
+
+    </textarea>
+    <script src="./remark-latest.min.js">
+    </script>
+    <script>
+      var slideshow = remark.create();
+    </script>
+  </body>
+</html>
